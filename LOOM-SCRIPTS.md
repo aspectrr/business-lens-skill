@@ -1,5 +1,9 @@
 # Loom scripts — Company Brain sends (ASPTR-164)
 
+Links are token-gated now: use `https://<app>.fly.dev/?token=<tok>` in every email,
+and `https://<app>.fly.dev/mcp?token=<tok>` when connecting ChatGPT/Claude on camera.
+Tokens: DEMO-TOKENS.txt (gitignored, same folder). A plain link 401s.
+
 Three-minute walkthroughs, recorded separately per company. Read them like you talk,
 not like you write. Name the company in the first five seconds. [SCREEN] cues are what
 the viewer sees while you talk. Numbers referenced are live from the deployed pages as
