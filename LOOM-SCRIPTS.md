@@ -127,7 +127,7 @@ anyone enjoys. This watches all of it daily and tells you what moved.
 
 Here's a live one. How long is an I-485 taking in Indianapolis right now. Family based,
 80 percent of cases done in 17 and a half to 31 and a half months, USCIS published
-August 17th. That's this week's number, not something from a training cutoff.
+August 17th. That's this week's number, and it came from USCIS directly, not from an AI's memory.
 
 And here's the kind of thing it catches. Last month the Visa Bulletin moved F2A, so
 spouses and children of residents, forward 567 days. Nearly current. That changes
