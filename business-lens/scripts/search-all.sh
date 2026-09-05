@@ -25,4 +25,4 @@ echo ""
 echo "━━━ SUMMARY ━━━"
 echo -n "Books:       "; grep -rli "$QUERY" "$HOME/.cache/business-lens/books"/*.txt 2>/dev/null | wc -l | tr -d ' '; echo
 echo -n "Transcripts: "; grep -rli "$QUERY" "$HOME/.cache/business-lens/transcripts"/*/*.txt 2>/dev/null | wc -l | tr -d ' '; echo
-echo -n "Web:         "; grep -rli "$QUERY" "$HOME/.cache/business-lens/web"/*.txt 2>/dev/null | wc -l | tr -d ' '; echo
+echo -n "Web:         "; { grep -rli "$QUERY" "$HOME/.cache/business-lens/web"/*.txt "$HOME/.cache/business-lens/web"/*/*.md "$HOME/.cache/business-lens/web"/*/*/*.md 2>/dev/null; } | wc -l | tr -d ' '; echo

@@ -48,7 +48,7 @@ print("\n".join(lines))
 search() {
   local query="$1" found=0
   shopt -s nullglob
-  local -a files=( "$CACHE_DIR"/*.txt )
+  local -a files=( "$CACHE_DIR"/*.txt "$CACHE_DIR"/*/*.md "$CACHE_DIR"/*/*/*.md "$CACHE_DIR"/*/*.txt )
   [[ ${#files[@]} -eq 0 ]] && { echo "(no cached articles. run: web-search.sh fetch <url>)" >&2; return; }
   echo "Searching web articles for: \"$query\"" >&2
   for t in "${files[@]}"; do
@@ -56,7 +56,7 @@ search() {
       found=1
       local src; src="$(grep -m1 -iE '^(source|url):' "$t" 2>/dev/null | sed 's/^[Ss]ource: //;s/^[Uu]rl: //')" || true
       echo ""
-      echo "[WEB] $(basename "$t" .txt)${src:+  →  $src}"
+      echo "[WEB] $(basename "$t" | sed 's/\.txt$//;s/\.md$//')${src:+  →  $src}"
       grep -ni -C 4 "$query" "$t" 2>/dev/null | head -45
     fi
   done

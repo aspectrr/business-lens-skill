@@ -86,6 +86,18 @@ the pmarca blog archives (Andreessen), Hamming, Rockefeller, +more.
 ```
 Sync any business creator Collin trusts. Hormozi is pre-seeded.
 
+**Daily playlist sync (launchd).** A LaunchAgent (`com.business-lens.daily-sync`, plist in
+`scripts/`, installed at `~/Library/LaunchAgents/`) runs `yt-search.sh sync` every day at
+7:30am local against the playlist set in `~/.cache/business-lens/playlist.conf`:
+
+```bash
+echo 'PLAYLIST_URL=https://www.youtube.com/playlist?list=PLxxxx' > ~/.cache/business-lens/playlist.conf
+launchctl kickstart -k gui/$(id -u)/com.business-lens.daily-sync   # run now
+```
+
+Dedupe is file-existence per video id — re-syncs only fetch new videos. No conf file =
+the job no-ops. Log: `~/.cache/business-lens/daily-sync.log`.
+
 ### 3. Web articles — fetch, cache, search (curl + pandoc)
 
 ```bash
