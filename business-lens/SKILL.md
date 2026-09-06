@@ -1,9 +1,9 @@
 ---
 name: "business-lens"
 description: "Business mentor and decision lens. Use when Collin asks for business advice, strategy, pricing/offer, positioning, growth/acquisition, customer-validation, or go/no-go decisions on his business — or wants to reason about how to build/grow a startup or product. Grounds every answer in his trusted sources with citations: Paul Graham essays, Alex Hormozi (offers/leads/money + YouTube), Ogilvy, Munger, The Mom Test. Searches his book library, YouTube transcripts, and cached web articles for source-backed answers."
-version: 2
+version: 3
 created: "2026-08-01"
-updated: "2026-08-01"
+updated: "2026-09-05"
 ---
 
 # Business Lens — Mentor & Decision Framework
@@ -86,17 +86,25 @@ the pmarca blog archives (Andreessen), Hamming, Rockefeller, +more.
 ```
 Sync any business creator Collin trusts. Hormozi is pre-seeded.
 
-**Daily playlist sync (launchd).** A LaunchAgent (`com.business-lens.daily-sync`, plist in
+Collin's curated business playlist (`PLFbnJ81MMSMQ`) syncs automatically every morning
+(see launchd below). It is **unlisted**, so yt-dlp needs login cookies: `yt-search.sh`
+sends `--cookies "$YT_COOKIES_FILE"` whenever that env var is set. Cookies live at
+`~/.cache/business-lens/cookies.txt` and expire every few months — symptom is
+`Cached 0/0` in the sync log; re-export from the Helium browser, don't re-sync channels
+that already cached fine.
+
+**Daily playlist sync (launchd, live).** A LaunchAgent (`com.business-lens.daily-sync`, plist in
 `scripts/`, installed at `~/Library/LaunchAgents/`) runs `yt-search.sh sync` every day at
 7:30am local against the playlist set in `~/.cache/business-lens/playlist.conf`:
 
 ```bash
-echo 'PLAYLIST_URL=https://www.youtube.com/playlist?list=PLxxxx' > ~/.cache/business-lens/playlist.conf
+cat ~/.cache/business-lens/playlist.conf                     # PLAYLIST_URL + export YT_COOKIES_FILE=…
 launchctl kickstart -k gui/$(id -u)/com.business-lens.daily-sync   # run now
+tail ~/.cache/business-lens/daily-sync.log                   # verify
 ```
 
-Dedupe is file-existence per video id — re-syncs only fetch new videos. No conf file =
-the job no-ops. Log: `~/.cache/business-lens/daily-sync.log`.
+Dedupe is file-existence per video id — re-syncs only fetch new videos. Log:
+`~/.cache/business-lens/daily-sync.log`.
 
 ### 3. Web articles — fetch, cache, search (curl + pandoc)
 
