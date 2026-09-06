@@ -18,14 +18,17 @@ clean_vtt() {
     | awk 'prev!=$0{print; prev=$0}'
 }
 
+# optional cookies for private/unlisted playlists: export YT_COOKIES_FILE=/path/to/cookies.txt
+ck() { [[ -n "${YT_COOKIES_FILE:-}" ]] && echo --cookies && echo "$YT_COOKIES_FILE"; }
+
 fetch_video() {
   local url="$1" outdir="$2" id cache
-  id="$(yt-dlp --no-warnings --print id "$url" 2>/dev/null | head -1)"
+  id="$(yt-dlp --no-warnings $(ck) --print id "$url" 2>/dev/null | head -1)"
   [[ -z "$id" ]] && return 1
   cache="$outdir/$id.txt"
   [[ -f "$cache" ]] && return 0
   local tmp; tmp="$(mktemp -d)"
-  yt-dlp --skip-download --write-subs --write-auto-subs \
+  yt-dlp $(ck) --skip-download --write-subs --write-auto-subs \
     --sub-lang en --convert-subs vtt -o "$tmp/%(id)s" "$url" >/dev/null 2>&1 || true
   local vtt; vtt="$(ls "$tmp"/*.vtt 2>/dev/null | head -1)"
   if [[ -n "$vtt" && -f "$vtt" ]]; then
@@ -46,7 +49,7 @@ sync_channel() {
     [[ -z "$id" ]] && continue
     fetch_video "https://www.youtube.com/watch?v=$id" "$outdir" && echo -n "." >&2
     n_total=$((n_total+1))
-  done < <(yt-dlp --flat-playlist --print "%(id)s" "$url" 2>/dev/null)
+  done < <(yt-dlp $(ck) --flat-playlist --print "%(id)s" "$url" 2>/dev/null)
   echo "" >&2
   n="$(ls "$outdir"/*.txt 2>/dev/null | wc -l | tr -d ' ')"
   echo "Cached $n/$n_total transcripts → $outdir" >&2
