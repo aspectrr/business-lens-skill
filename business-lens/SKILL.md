@@ -1,9 +1,9 @@
 ---
 name: "business-lens"
 description: "Business mentor and decision lens. Use when Collin asks for business advice, strategy, pricing/offer, positioning, growth/acquisition, customer-validation, or go/no-go decisions on his business — or wants to reason about how to build/grow a startup or product. Grounds every answer in his trusted sources with citations: Paul Graham essays, Alex Hormozi (offers/leads/money + YouTube), Ogilvy, Munger, The Mom Test. Searches his book library, YouTube transcripts, and cached web articles for source-backed answers."
-version: 3
+version: 4
 created: "2026-08-01"
-updated: "2026-09-05"
+updated: "2026-09-13"
 ---
 
 # Business Lens — Mentor & Decision Framework
@@ -86,25 +86,34 @@ the pmarca blog archives (Andreessen), Hamming, Rockefeller, +more.
 ```
 Sync any business creator Collin trusts. Hormozi is pre-seeded.
 
-Collin's curated business playlist (`PLFbnJ81MMSMQ`) syncs automatically every morning
-(see launchd below). It is **unlisted**, so yt-dlp needs login cookies: `yt-search.sh`
-sends `--cookies "$YT_COOKIES_FILE"` whenever that env var is set. Cookies live at
-`~/.cache/business-lens/cookies.txt` and expire every few months — symptom is
-`Cached 0/0` in the sync log; re-export from the Helium browser, don't re-sync channels
-that already cached fine.
+The curated business playlist (`PLFbnJ81MMSMQ`) and any listed channels sync
+automatically every morning (see launchd below). The playlist is **unlisted**, so
+yt-dlp needs login cookies: `yt-search.sh` sends `--cookies "$YT_COOKIES_FILE"`
+whenever that env var is set. Cookies live at `~/.cache/business-lens/cookies.txt`
+and expire every few months — symptom is `Cached 0/0` (or `N/0`) in the sync log;
+re-export from the Helium browser, don't re-sync channels that already cached fine.
 
-**Daily playlist sync (launchd, live).** A LaunchAgent (`com.business-lens.daily-sync`, plist in
-`scripts/`, installed at `~/Library/LaunchAgents/`) runs `yt-search.sh sync` every day at
-7:30am local against the playlist set in `~/.cache/business-lens/playlist.conf`:
+**Auto-growing corpus (launchd, live).** A LaunchAgent (`com.business-lens.daily-sync`,
+plist in `scripts/`, installed at `~/Library/LaunchAgents/`) runs `yt-search.sh sync`
+daily at 7:30am local against **every URL listed in** `~/.cache/business-lens/playlist.conf`:
 
-```bash
-cat ~/.cache/business-lens/playlist.conf                     # PLAYLIST_URL + export YT_COOKIES_FILE=…
-launchctl kickstart -k gui/$(id -u)/com.business-lens.daily-sync   # run now
-tail ~/.cache/business-lens/daily-sync.log                   # verify
+```
+# ~/.cache/business-lens/playlist.conf — one YouTube channel or playlist URL per line.
+# env lines (export VAR=…) are sourced; comments start with #.
+export YT_COOKIES_FILE=/Users/collinpfeifer/.cache/business-lens/cookies.txt
+https://www.youtube.com/playlist?list=PLFbnJ81MMSMQ
+https://www.youtube.com/@AlexHormozi/videos
 ```
 
+To auto-grow the corpus, paste another channel's `/videos` URL on a new line —
+next morning's sync pulls its full back catalog, then only new videos after that.
+One-off videos: either add them to the playlist in the YouTube UI (picked up at the
+next sync) or cache instantly with `yt-search.sh read <video-url>` (lands in
+`_single/`, searched with everything else).
+
 Dedupe is file-existence per video id — re-syncs only fetch new videos. Log:
-`~/.cache/business-lens/daily-sync.log`.
+`~/.cache/business-lens/daily-sync.log`. Run now:
+`launchctl kickstart -k gui/$(id -u)/com.business-lens.daily-sync`.
 
 ### 3. Web articles — fetch, cache, search (curl + pandoc)
 

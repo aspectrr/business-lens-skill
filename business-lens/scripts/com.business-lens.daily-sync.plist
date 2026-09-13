@@ -8,7 +8,7 @@
   <array>
     <string>/bin/bash</string>
     <string>-c</string>
-    <string>export PATH=/opt/homebrew/bin:$PATH; [ -f "$HOME/.cache/business-lens/playlist.conf" ] &amp;&amp; . "$HOME/.cache/business-lens/playlist.conf" &amp;&amp; exec "$HOME/.pi/agent/skills/business-lens/scripts/yt-search.sh" sync "$PLAYLIST_URL"</string>
+    <string>export PATH=/opt/homebrew/bin:$PATH; CONF="$HOME/.cache/business-lens/playlist.conf"; [ -f "$CONF" ] &amp;&amp; eval "$(grep -E '^[[:space:]]*(export )?[A-Za-z_][A-Za-z0-9_]*=' "$CONF")" &amp;&amp; grep -E '^https?://' "$CONF" | while read -r u; do "$HOME/.pi/agent/skills/business-lens/scripts/yt-search.sh" sync "$u"; done</string>
   </array>
   <key>StartCalendarInterval</key>
   <dict>
