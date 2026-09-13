@@ -1,0 +1,11 @@
+# business-lens daily sync sources — one YouTube channel or playlist URL per line.
+# Copy to ~/.cache/business-lens/playlist.conf — the launchd job reads it every morning.
+#
+# Comments (#) and blank lines are ignored. Env lines (export VAR=…) are sourced,
+# everything else must be an http(s) URL. Channels use their /videos URL.
+#
+# Unlisted playlists work without cookies. Private ones need cookies:
+# export YT_COOKIES_FILE=/path/to/cookies.txt   (Netscape format, see yt-dlp docs)
+
+https://www.youtube.com/playlist?list=PLFbnJ81MMSMQ
+https://www.youtube.com/@AlexHormozi/videos

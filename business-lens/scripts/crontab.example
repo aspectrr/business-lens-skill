@@ -1,0 +1,5 @@
+# Cron example for non-macOS hosts (macOS: use scripts/com.business-lens.daily-sync.plist).
+# Syncs every source in ~/.cache/business-lens/playlist.conf daily at 7:30am.
+# Env lines in the conf (YT_COOKIES_FILE etc.) are sourced by this wrapper.
+
+30 7 * * * CONF="$HOME/.cache/business-lens/playlist.conf"; [ -f "$CONF" ] && eval "$(grep -E '^[[:space:]]*(export )?[A-Za-z_][A-Za-z0-9_]*=' "$CONF")" && grep -E '^https?://' "$CONF" | while read -r u; do "$HOME/.pi/agent/skills/business-lens/scripts/yt-search.sh" sync "$u"; done >> "$HOME/.cache/business-lens/daily-sync.log" 2>&1
