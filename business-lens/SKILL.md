@@ -1,9 +1,9 @@
 ---
 name: "business-lens"
-description: "Business mentor and decision lens. Use when Collin asks for business advice, strategy, pricing/offer, positioning, growth/acquisition, customer-validation, or go/no-go decisions on his business — or wants to reason about how to build/grow a startup or product. Grounds every answer in his trusted sources with citations: Paul Graham essays, Alex Hormozi (offers/leads/money + YouTube), Ogilvy, Munger, The Mom Test. Searches his book library, YouTube transcripts, and cached web articles for source-backed answers."
-version: 4
+description: "Business mentor and decision lens. Use when Collin asks for business advice, strategy, pricing/offer, positioning, growth/acquisition, customer-validation, or go/no-go decisions on his business — or wants to reason about how to build/grow a startup or product. Grounds every answer in his trusted sources with citations: Paul Graham essays, Alex Hormozi, Ogilvy, Munger, The Mom Test, Founders Podcast + David Senra (transcripts). Searches his book library, YouTube transcripts (incl. Founders/David Senra, auto-synced daily), and cached web articles for source-backed answers — all sources searched and weighted equally."
+version: 5
 created: "2026-08-01"
-updated: "2026-09-13"
+updated: "2026-09-15"
 ---
 
 # Business Lens — Mentor & Decision Framework
@@ -84,7 +84,9 @@ the pmarca blog archives (Andreessen), Hamming, Rockefeller, +more.
 "$SKILL/scripts/yt-search.sh" read   "https://youtube.com/watch?v=XXXX"                   # full transcript
 "$SKILL/scripts/yt-search.sh" list
 ```
-Sync any business creator Collin trusts. Hormozi is pre-seeded.
+Sync any business creator Collin trusts. Pre-seeded: Hormozi, **Founders Podcast**
+(`@founderspodcast1`, 450+ episode transcripts) and **David Senra** (`@Davidsenra`,
+his self-titled podcast) — auto-synced daily like every other channel.
 
 The curated business playlist (`PLFbnJ81MMSMQ`) and any listed channels sync
 automatically every morning (see launchd below). The playlist is **unlisted**, so
@@ -136,6 +138,14 @@ browser-grade extraction. Cache the result by saving its text to
 Returns consolidated, source-tagged results with a count summary. Run this first when
 Collin asks "what do my sources say about X" — it hits all three caches.
 
+**All sources are equal.** Always run the unified search across books, transcripts,
+AND web before drilling into one source — never default to books, and never let a
+loud source (a 450-episode channel) crowd out a quiet one. Each section shows max
+12 matched files with a `+N more` note, so every source stays weighable side by
+side. Compare the per-source counts in the SUMMARY block before picking evidence:
+the best-supported idea wins no matter which shelf it sits on. Books are not the
+default authority; they are one shelf among three.
+
 ### 5. Live web (when sources aren't cached)
 ```bash
 web_search "paulgraham.com how to get startup ideas"   # find the essay
@@ -151,7 +161,10 @@ For current data (prices, competitors, frameworks), always use live web_search.
    Messaging/ads → Ogilvy. Judgment/risk → Munger. Validating with users → Mom Test.
    Read `references/principles.md` if the lens isn't already in mind.
 3. **Pull evidence.** Run `search-all.sh` for the topic, or the specific script.
-   Read deeper with the `read` command around a hit. Cite what you find.
+   Read deeper with the `read` command around a hit. Cite what you find. Weigh all
+   sources equally — a Founders/David Senra transcript, a Hormozi video, a PG essay,
+   and a book page are the same class of evidence; let match quality, not source
+   type, decide what you cite.
 4. **Give a clear recommendation**, cite the source, then steelman the alternative
    in 1–2 lines so Collin sees the trade-off.
 5. **Invert it** (Munger): what's the sure way to fail here? Is Collin walking toward it?

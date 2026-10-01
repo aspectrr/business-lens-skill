@@ -43,17 +43,24 @@ search() {
   [[ "$scope" != "all" ]] && extract_one "$BOOKS_DIR/$scope" 2>/dev/null || true
   for f in "$BOOKS_DIR"/*.epub "$BOOKS_DIR"/*.pdf; do extract_one "$f"; done
   echo "Searching books for: \"$query\"" >&2
-  local found=0
+  # Equal per-source cap: at most 12 matched files shown, so no one source
+  # floods unified search and every source stays weighable side by side.
+  local found=0 shown=0 total=0 cap=12
   for t in "$CACHE_DIR"/*.txt; do
     if grep -qi "$query" "$t" 2>/dev/null; then
-      found=1
-      local name; name="$(basename "$t" .txt | sed -E 's/ --.*//; s/_/ /g')"
-      echo ""
-      echo "[BOOK] $name"
-      grep -ni -C 4 "$query" "$t" 2>/dev/null | head -45
+      found=1; total=$((total+1))
+      if (( shown < cap )); then
+        shown=$((shown+1))
+        local name; name="$(basename "$t" .txt | sed -E 's/ --.*//; s/_/ /g')"
+        echo ""
+        echo "[BOOK] $name"
+        grep -ni -C 4 "$query" "$t" 2>/dev/null | head -45 || true   # head SIGPIPEs grep on big matches — benign
+      fi
     fi
   done
-  [[ "$found" -eq 0 ]] && echo "(no book matches)" >&2
+  if [[ "$found" -eq 0 ]]; then echo "(no book matches)" >&2
+  elif (( total > shown )); then echo "(+$((total-shown)) more books matched — refine the query to narrow)" >&2; fi
+  return 0   # found>0 used to exit non-zero → search-all printed a false 'unavailable'
 }
 
 # read: dump full text or a line range of a cached book (use after search finds line nos)
@@ -74,6 +81,7 @@ book-search.sh — search & read Collin's book library (~/Desktop/learning/books
   book-search.sh read   "offers" 145 30         # dump lines 145-174
   book-search.sh sync                            # (re)extract all books to cache
   book-search.sh list                            # show cached books
+(Search shows max 12 matched books; refine the query to narrow.)
 EOF
 }
 

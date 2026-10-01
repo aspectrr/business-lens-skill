@@ -67,16 +67,24 @@ search() {
   fi
   [[ ${#files[@]} -eq 0 ]] && { echo "(no cached transcripts. run: yt-search.sh sync <channel-url>)" >&2; return; }
   echo "Searching transcripts for: \"$query\"" >&2
+  # Equal per-source cap: at most 12 matched videos shown, so a big channel
+  # (450+ Founders episodes) can't flood unified search and drown books/web.
+  local cap=12 shown=0 total=0
   for t in "${files[@]}"; do
     if grep -qi "$query" "$t" 2>/dev/null; then
-      found=1
-      local ch; ch="$(basename "$(dirname "$t")")"
-      echo ""
-      echo "[VIDEO] $ch/$(basename "$t" .txt)  →  https://youtube.com/watch?v=$(basename "$t" .txt)"
-      grep -ni -C 2 "$query" "$t" 2>/dev/null | head -30
+      found=1; total=$((total+1))
+      if (( shown < cap )); then
+        shown=$((shown+1))
+        local ch; ch="$(basename "$(dirname "$t")")"
+        echo ""
+        echo "[VIDEO] $ch/$(basename "$t" .txt)  →  https://youtube.com/watch?v=$(basename "$t" .txt)"
+        grep -ni -C 2 "$query" "$t" 2>/dev/null | head -30 || true   # head SIGPIPEs grep on big matches — benign
+      fi
     fi
   done
-  [[ "$found" -eq 0 ]] && echo "(no transcript matches)" >&2
+  if [[ "$found" -eq 0 ]]; then echo "(no transcript matches)" >&2
+  elif (( total > shown )); then echo "(+$((total-shown)) more videos matched — refine the query or scope to one channel)" >&2; fi
+  return 0   # found>0 used to exit non-zero → search-all printed a false 'unavailable'
 }
 
 # read: dump full transcript of a video (by id or url), fetching if needed
@@ -102,6 +110,7 @@ yt-search.sh — search & read YouTube transcripts (cached via yt-dlp)
   yt-search.sh search "query" [channel-url]              # grep cached transcripts
   yt-search.sh read   <video-id-or-url>                  # dump full transcript
   yt-search.sh list   [channel-url]                      # show cached channels
+(Search shows max 12 matched videos; scope to one channel or refine the query.)
 Examples:
   yt-search.sh sync https://www.youtube.com/@AlexHormozi/videos
   yt-search.sh search "newsletter drop off"

@@ -51,16 +51,24 @@ search() {
   local -a files=( "$CACHE_DIR"/*.txt "$CACHE_DIR"/*/*.md "$CACHE_DIR"/*/*/*.md "$CACHE_DIR"/*/*.txt )
   [[ ${#files[@]} -eq 0 ]] && { echo "(no cached articles. run: web-search.sh fetch <url>)" >&2; return; }
   echo "Searching web articles for: \"$query\"" >&2
+  # Equal per-source cap: at most 12 matched files shown, so no one source
+  # floods unified search and every source stays weighable side by side.
+  local cap=12 shown=0 total=0
   for t in "${files[@]}"; do
     if grep -qi "$query" "$t" 2>/dev/null; then
-      found=1
-      local src; src="$(grep -m1 -iE '^(source|url):' "$t" 2>/dev/null | sed 's/^[Ss]ource: //;s/^[Uu]rl: //')" || true
-      echo ""
-      echo "[WEB] $(basename "$t" | sed 's/\.txt$//;s/\.md$//')${src:+  →  $src}"
-      grep -ni -C 4 "$query" "$t" 2>/dev/null | head -45
+      found=1; total=$((total+1))
+      if (( shown < cap )); then
+        shown=$((shown+1))
+        local src; src="$(grep -m1 -iE '^(source|url):' "$t" 2>/dev/null | sed 's/^[Ss]ource: //;s/^[Uu]rl: //')" || true
+        echo ""
+        echo "[WEB] $(basename "$t" | sed 's/\.txt$//;s/\.md$//')${src:+  →  $src}"
+        grep -ni -C 4 "$query" "$t" 2>/dev/null | head -45 || true   # head SIGPIPEs grep on big matches — benign
+      fi
     fi
   done
-  [[ "$found" -eq 0 ]] && echo "(no web matches)" >&2
+  if [[ "$found" -eq 0 ]]; then echo "(no web matches)" >&2
+  elif (( total > shown )); then echo "(+$((total-shown)) more articles matched — refine the query to narrow)" >&2; fi
+  return 0   # found>0 used to exit non-zero → search-all printed a false 'unavailable'
 }
 
 # read: dump full cached article
@@ -84,6 +92,7 @@ web-search.sh — fetch (cache) & search/read web articles
   web-search.sh search "query"          # grep cached articles
   web-search.sh read   <name|url>       # dump full cached article
   web-search.sh list                    # show cached articles
+(Search shows max 12 matched articles; refine the query to narrow.)
 NOTE: for JS-heavy or paywalled pages, use the native web_fetch tool instead.
 EOF
 }
