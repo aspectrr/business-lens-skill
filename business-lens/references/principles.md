@@ -73,6 +73,25 @@ Use when the question is about messaging, positioning, ads, or copy.
   the decision. Brevity for its own sake loses sales.
 - **Test everything.** Headlines, offers, media. Let data settle arguments.
 
+
+## Naming & positioning — brand image and company names (Ogilvy + PG)
+
+Use when the question is naming, branding, reputation, or how a product should be
+positioned in the customer's mind.
+
+- **Positioning = the brand image.** Every ad and touchpoint is "a contribution to the
+  brand image," projected consistently year after year (Ogilvy on Advertising, line 268).
+  Customers don't compare specs — they compare images: "It isn't the whiskey they choose,
+  it's the image. The brand image is 90 per cent of what the distiller has to sell" (line 272).
+- **Reputation compounds like interest.** A long-term image investment beats a hard-sell
+  spike; the Marlboro cowboy ran for 25 years while the brand went from obscurity to #1
+  (Ogilvy on Advertising, line 294).
+- **Naming is a separate skill — borrow it if you lack it.** PG: being bad at naming
+  doesn't make you a bad founder; "naming is a completely separate skill from those you
+  need to be a good founder," and one good office-hour session finds a workable name most
+  of the time (PG essays, graham.txt lines 19519, 19525). Don't stall a launch over a
+  name; pick a good-enough one and spend the energy on the product.
+
 ## Charlie Munger — Thinking & avoiding self-destruction (Poor Charlie's Almanack)
 
 Use when the question is about judgment, risk, or avoiding catastrophic error.
@@ -103,7 +122,7 @@ Use whenever validating an idea, a price, or a feature with a customer.
 
 1. Name the decision or question plainly.
 2. Identify which lens applies (product → PG; pricing/offer → Hormozi;
-   messaging → Ogilvy; judgment/risk → Munger; customer validation → Mom Test).
+   messaging/positioning/naming → Ogilvy; judgment/risk → Munger; customer validation → Mom Test).
 3. State what the lens implies.
 4. Stress-test it: what would the *opposite* advice be, and why is it wrong here?
    (Munger inversion.)
