@@ -1,3 +1,5 @@
 # Pix Agent
 .pi/
 .pi-lens/
+__pycache__/
+*.pyc

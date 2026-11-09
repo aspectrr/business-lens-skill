@@ -1,9 +1,9 @@
 ---
 name: "business-lens"
 description: "Business mentor and decision lens. Use when Collin asks for business advice, strategy, pricing/offer, positioning, growth/acquisition, customer-validation, or go/no-go decisions on his business — or wants to reason about how to build/grow a startup or product. Grounds every answer in his trusted sources with citations: Paul Graham essays, Alex Hormozi, Ogilvy, Munger, The Mom Test, Founders Podcast + David Senra (transcripts). Searches his book library, YouTube transcripts (incl. Founders/David Senra, auto-synced daily), and cached web articles for source-backed answers — all sources searched and weighted equally."
-version: 5
+version: 7
 created: "2026-08-01"
-updated: "2026-09-15"
+updated: "2026-11-09"
 ---
 
 # Business Lens — Mentor & Decision Framework
@@ -52,7 +52,10 @@ essay URL. Examples:
 - `> **Source:** [LENS] Invert, always invert — Munger (references/principles.md)`
 
 If you cannot cite a source for a claim, say so explicitly: *"This is general reasoning,
-not from a specific trusted source."* Never present memory as a verbatim quote.
+not from a specific trusted source."* Never present memory as a verbatim quote. General
+reasoning is the right tool when no trusted source covers the domain (e.g. niche industries
+like estate/family-office services) — label it as above and reason carefully, rather than
+stretching an unrelated source to fit.
 
 ## Source Layers & Tools
 
@@ -133,18 +136,35 @@ browser-grade extraction. Cache the result by saving its text to
 
 ```bash
 "$SKILL/scripts/search-all.sh" "value equation"             # books + transcripts + web
+"$SKILL/scripts/search-all.sh" --semantic "pricing for value over hours"
 "$SKILL/scripts/search-all.sh" "retention" "https://www.youtube.com/@AlexHormozi/videos"
 ```
-Returns consolidated, source-tagged results with a count summary. Run this first when
-Collin asks "what do my sources say about X" — it hits all three caches.
+BM25-ranked FTS5 index over all three caches (`~/.cache/business-lens/index.db`, built by
+`scripts/index.py`). Run this first when Collin asks "what do my sources say about X".
+
+**Query semantics.** Multi-word queries match ANY keyword — "sell the outcome not the
+feature" hits docs containing any of those words, most relevant first. For exact wording,
+use "quoted phrase". Zero hits? Retry with 1–2 keywords before concluding the corpus lacks
+the topic. First run builds the index (~1 min for the full cache); every later run is
+incremental — transcripts added by the daily sync are picked up on the next search.
+
+**Conceptual queries: `--semantic`.** Add the flag to match IDEAS instead of words —
+`search-all.sh --semantic "how do I price for value not hours"` finds passages that share
+no keywords with the query. bge-small-en-v1.5 embeddings (via `uv run --with
+sentence-transformers`, auto; model downloaded once to the HF cache; Metal/MPS accelerated).
+Scores are cosine 0–1; SUMMARY counts hits ≥ 0.4. Each hit shows its chunk's real line
+range, so citations stay line-numbered. First embedding build takes ~15 min (~280k
+chunks); after that it's incremental and resumable (per-file commits). Prefer keyword
+mode for exact terms — semantic is the fallback when wording won't match or the topic
+is fuzzy.
 
 **All sources are equal.** Always run the unified search across books, transcripts,
 AND web before drilling into one source — never default to books, and never let a
 loud source (a 450-episode channel) crowd out a quiet one. Each section shows max
-12 matched files with a `+N more` note, so every source stays weighable side by
-side. Compare the per-source counts in the SUMMARY block before picking evidence:
-the best-supported idea wins no matter which shelf it sits on. Books are not the
-default authority; they are one shelf among three.
+12 relevance-ranked hits, so every source stays weighable side by side. Compare the
+per-source counts in the SUMMARY block before picking evidence: the best-supported
+idea wins no matter which shelf it sits on. Books are not the default authority;
+they are one shelf among three.
 
 ### 5. Live web (when sources aren't cached)
 ```bash
@@ -158,8 +178,9 @@ For current data (prices, competitors, frameworks), always use live web_search.
 1. **Restate** the decision in one sentence; name what Collin is really optimizing
    for (growth? cash? retention? learning?).
 2. **Pick the lens.** Product/idea → Paul Graham. Offer/pricing/growth → Hormozi.
-   Messaging/ads → Ogilvy. Judgment/risk → Munger. Validating with users → Mom Test.
-   Read `references/principles.md` if the lens isn't already in mind.
+   Messaging/ads/positioning/naming → Ogilvy. Judgment/risk → Munger.
+   Validating with users → Mom Test. Read `references/principles.md` if the lens
+   isn't already in mind.
 3. **Pull evidence.** Run `search-all.sh` for the topic, or the specific script.
    Read deeper with the `read` command around a hit. Cite what you find. Weigh all
    sources equally — a Founders/David Senra transcript, a Hormozi video, a PG essay,
@@ -176,8 +197,11 @@ For current data (prices, competitors, frameworks), always use live web_search.
 - **Don't fabricate quotes or sources.** Principles in references/ are paraphrased. If
   Collin needs exact wording, fetch the source. Auto-generated YouTube captions are
   imperfect — cite the video URL + line, don't present cleaned transcripts as verbatim.
-- **First sync is slow** (extraction / downloading). Run in the background; searches are
-  instant after. Check progress: `ls ~/.cache/business-lens/transcripts/<slug>/ | wc -l`.
+- **Queries: multi-word = ANY word.** All search scripts OR the words of a multi-word
+  query and rank results; "quote a phrase" for exact wording. If a query returns 0,
+  retry with 1–2 keywords before concluding the corpus lacks the topic.
+- **First index build / sync is slow** (extraction / downloading / indexing). Run in the
+  background; searches are instant after. Check progress: `ls ~/.cache/business-lens/transcripts/<slug>/ | wc -l`.
 - **Don't ignore Collin's cash reality.** "Default alive" matters. A strategy that assumes
   unlimited runway is a different bet than a bootstrapped one — name which you're assuming.
 - **Retention before acquisition.** Resist advising "get more leads" before the product and

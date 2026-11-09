@@ -56,35 +56,43 @@ sync_channel() {
 }
 
 search() {
-  local query="$1" scope="${2:-all}" found=0
-  local -a files=()
-  shopt -s nullglob
-  if [[ "$scope" == "all" ]]; then
-    files=( "$CACHE_ROOT"/*/*.txt )
-  else
-    local s; s="$(slug "$scope")"
-    files=( "$CACHE_ROOT/$s"/*.txt )
-  fi
-  [[ ${#files[@]} -eq 0 ]] && { echo "(no cached transcripts. run: yt-search.sh sync <channel-url>)" >&2; return; }
+  local query="$1" scope="${2:-all}" dir="$CACHE_ROOT" t
+  [[ "$scope" != "all" ]] && dir="$CACHE_ROOT/$(slug "$scope")"
+  [[ -d "$dir" ]] || { echo "(no cached transcripts. run: yt-search.sh sync <channel-url>)" >&2; return; }
   echo "Searching transcripts for: \"$query\"" >&2
+  # Multi-word queries match ANY keyword (OR'd); "a quoted phrase" matches exactly.
+  # Stopwords are dropped (else "the" floods every context line); full set if all are.
+  # grep -i makes case irrelevant, so tokens are lowercased first.
+  local sw=" the a an and or of to in on is it for with that this not be are was were do does did how what when who your you my we us i "
+  local ql; ql="$(printf '%s' "$query" | tr '[:upper:]' '[:lower:]')"
+  local -a toks=() ga=()
+  read -ra toks <<< "${ql//\"/ }"
+  if [[ "$ql" =~ ^\".+\"$ ]]; then
+    ga=(-e "${ql:1:${#ql}-2}")
+  elif (( ${#toks[@]} )); then
+    for t in "${toks[@]}"; do [[ -n "$t" && "$sw" != *" $t "* ]] && ga+=("-e" "$t"); done
+    (( ${#ga[@]} )) || for t in "${toks[@]}"; do [[ -n "$t" ]] && ga+=("-e" "$t"); done
+  fi
+  (( ${#ga[@]} )) || ga=(-e "$query")
+  # One recursive pass (was one grep per file — thousands of process spawns per query).
   # Equal per-source cap: at most 12 matched videos shown, so a big channel
   # (450+ Founders episodes) can't flood unified search and drown books/web.
-  local cap=12 shown=0 total=0
-  for t in "${files[@]}"; do
-    if grep -qi "$query" "$t" 2>/dev/null; then
-      found=1; total=$((total+1))
-      if (( shown < cap )); then
-        shown=$((shown+1))
-        local ch; ch="$(basename "$(dirname "$t")")"
-        echo ""
-        echo "[VIDEO] $ch/$(basename "$t" .txt)  →  https://youtube.com/watch?v=$(basename "$t" .txt)"
-        grep -ni -C 2 "$query" "$t" 2>/dev/null | head -30 || true   # head SIGPIPEs grep on big matches — benign
-      fi
-    fi
+  local -a hits=()
+  while IFS= read -r t; do hits+=("$t"); done < <(grep -ril "${ga[@]}" "$dir" 2>/dev/null)
+  local total=${#hits[@]} cap=12 i
+  if (( total == 0 )); then echo "(no transcript matches)" >&2; return 0; fi
+  for ((i=0; i<total && i<cap; i++)); do
+    t="${hits[i]}"
+    local ctx; ctx="$(grep -in -C 2 "${ga[@]}" "$t" 2>/dev/null | head -30)"
+    [[ -z "$ctx" ]] && continue   # ranked on stopwords we dropped — skip empty blocks
+    echo ""
+    # Full cache path in the header: line numbers below are unambiguously
+    # attributed to one file (agents cite these line numbers).
+    echo "[VIDEO] $t  →  https://youtube.com/watch?v=$(basename "$t" .txt)"
+    printf '%s\n' "$ctx"
   done
-  if [[ "$found" -eq 0 ]]; then echo "(no transcript matches)" >&2
-  elif (( total > shown )); then echo "(+$((total-shown)) more videos matched — refine the query or scope to one channel)" >&2; fi
-  return 0   # found>0 used to exit non-zero → search-all printed a false 'unavailable'
+  (( total > cap )) && echo "(+$((total-cap)) more videos matched — refine the query or scope to one channel)" >&2
+  return 0
 }
 
 # read: dump full transcript of a video (by id or url), fetching if needed
@@ -110,7 +118,8 @@ yt-search.sh — search & read YouTube transcripts (cached via yt-dlp)
   yt-search.sh search "query" [channel-url]              # grep cached transcripts
   yt-search.sh read   <video-id-or-url>                  # dump full transcript
   yt-search.sh list   [channel-url]                      # show cached channels
-(Search shows max 12 matched videos; scope to one channel or refine the query.)
+(Search matches ANY keyword of a multi-word query; \"quote a phrase\" for exact wording.
+Shows max 12 matched videos; scope to one channel or refine the query.)
 Examples:
   yt-search.sh sync https://www.youtube.com/@AlexHormozi/videos
   yt-search.sh search "newsletter drop off"

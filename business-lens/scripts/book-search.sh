@@ -38,29 +38,42 @@ sync_all() {
 }
 
 search() {
-  local query="$1" scope="${2:-all}"
+  local query="$1" scope="${2:-all}" t
   shopt -s nullglob
   [[ "$scope" != "all" ]] && extract_one "$BOOKS_DIR/$scope" 2>/dev/null || true
   for f in "$BOOKS_DIR"/*.epub "$BOOKS_DIR"/*.pdf; do extract_one "$f"; done
   echo "Searching books for: \"$query\"" >&2
+  # Multi-word queries match ANY keyword (OR'd); "a quoted phrase" matches exactly.
+  # Stopwords are dropped (else "the" floods every context line); full set if all are.
+  # grep -i makes case irrelevant, so tokens are lowercased first.
+  local sw=" the a an and or of to in on is it for with that this not be are was were do does did how what when who your you my we us i "
+  local ql; ql="$(printf '%s' "$query" | tr '[:upper:]' '[:lower:]')"
+  local -a toks=() ga=()
+  read -ra toks <<< "${ql//\"/ }"
+  if [[ "$ql" =~ ^\".+\"$ ]]; then
+    ga=(-e "${ql:1:${#ql}-2}")
+  elif (( ${#toks[@]} )); then
+    for t in "${toks[@]}"; do [[ -n "$t" && "$sw" != *" $t "* ]] && ga+=("-e" "$t"); done
+    (( ${#ga[@]} )) || for t in "${toks[@]}"; do [[ -n "$t" ]] && ga+=("-e" "$t"); done
+  fi
+  (( ${#ga[@]} )) || ga=(-e "$query")
   # Equal per-source cap: at most 12 matched files shown, so no one source
   # floods unified search and every source stays weighable side by side.
-  local found=0 shown=0 total=0 cap=12
-  for t in "$CACHE_DIR"/*.txt; do
-    if grep -qi "$query" "$t" 2>/dev/null; then
-      found=1; total=$((total+1))
-      if (( shown < cap )); then
-        shown=$((shown+1))
-        local name; name="$(basename "$t" .txt | sed -E 's/ --.*//; s/_/ /g')"
-        echo ""
-        echo "[BOOK] $name"
-        grep -ni -C 4 "$query" "$t" 2>/dev/null | head -45 || true   # head SIGPIPEs grep on big matches — benign
-      fi
-    fi
+  local -a hits=()
+  while IFS= read -r t; do hits+=("$t"); done < <(grep -ril "${ga[@]}" "$CACHE_DIR" 2>/dev/null)
+  local total=${#hits[@]} cap=12 i name
+  if (( total == 0 )); then echo "(no book matches)" >&2; return 0; fi
+  for ((i=0; i<total && i<cap; i++)); do
+    t="${hits[i]}"
+    local ctx; ctx="$(grep -in -C 4 "${ga[@]}" "$t" 2>/dev/null | head -45)"
+    [[ -z "$ctx" ]] && continue   # ranked on stopwords we dropped — skip empty blocks
+    name="$(basename "$t" .txt | sed -E 's/ --.*//; s/_/ /g')"
+    echo ""
+    echo "[BOOK] $name  ($t)"
+    printf '%s\n' "$ctx"
   done
-  if [[ "$found" -eq 0 ]]; then echo "(no book matches)" >&2
-  elif (( total > shown )); then echo "(+$((total-shown)) more books matched — refine the query to narrow)" >&2; fi
-  return 0   # found>0 used to exit non-zero → search-all printed a false 'unavailable'
+  (( total > cap )) && echo "(+$((total-cap)) more books matched — refine the query to narrow)" >&2
+  return 0
 }
 
 # read: dump full text or a line range of a cached book (use after search finds line nos)
