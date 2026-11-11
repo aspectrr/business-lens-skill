@@ -6,10 +6,11 @@ DIR="$(cd "$(dirname "$0")" && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 export CACHE_ROOT="$TMP/cache"
-mkdir -p "$CACHE_ROOT/books" "$CACHE_ROOT/transcripts/ch" "$CACHE_ROOT/web"
+mkdir -p "$CACHE_ROOT/books" "$CACHE_ROOT/transcripts/ch" "$CACHE_ROOT/web" "$CACHE_ROOT/swiped"
 printf 'grand slam offer so good people feel stupid saying no\n' > "$CACHE_ROOT/books/offers.txt"
 printf 'retention before acquisition. fix churn first.\n' > "$CACHE_ROOT/transcripts/ch/vid1.txt"
 printf 'sell the outcome not the feature\n' > "$CACHE_ROOT/web/post.md"
+printf 'Source: https://swiped.co/file/banner-ad-copy-from-shopify/\nTitle: Banner Ad Copy from Shopify\n\n## Analysis\nsimple split-testing: sell the outcome, not the feature — copy rooted in different emotions\n' > "$CACHE_ROOT/swiped/shopify-banner.md"
 fail() { echo "FAIL: $1" >&2; exit 1; }
 tab=$'\t'
 
@@ -56,7 +57,9 @@ python3 "$DIR/index.py" reindex >/dev/null 2>&1
 out="$(CACHE_ROOT="$CACHE_ROOT" "$DIR/search-all.sh" "outcome feature")"
 grep -q "UNIFIED SEARCH" <<<"$out"               || fail "search-all banner missing"
 grep -q '\[WEB\]' <<<"$out"                      || fail "search-all missing [WEB] hit"
+grep -q '\[SWIPED\]' <<<"$out"                   || fail "search-all missing [SWIPED] hit"
 grep -q "Web:         1" <<<"$out"               || fail "search-all SUMMARY web count wrong"
+grep -q "Swiped:      1" <<<"$out"               || fail "search-all SUMMARY swiped count wrong"
 
 # semantic mode: embed the fixture and check that a query sharing no keywords
 # with post.md still ranks it first (that's the whole point). Needs uv+fastembed.

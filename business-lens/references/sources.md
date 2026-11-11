@@ -25,8 +25,10 @@ The-pmarca-Blog-Archives.pdf covers his full blog. Searchable via `book-search.s
 - Books: `$100M Offers`, `$100M Leads`, `$100M Money Models` (in ~/Desktop/learning/books)
 - YouTube: `yt-search.sh sync https://www.youtube.com/@AlexHormozi/videos`
 
-## David Ogilvy — book
-`Ogilvy on Advertising` (in ~/Desktop/learning/books)
+## David Ogilvy — book + swiped.co teardowns
+`Ogilvy on Advertising` (in ~/Desktop/learning/books). Classic ads he wrote are also
+on swiped.co with modern annotation — `swiped-sync.sh sync` caches them; cite the
+swipe URL alongside the book when the ads themselves are the evidence.
 
 ## Charlie Munger — book
 `Poor Charlie's Almanack` (EPUB + PDF in ~/Desktop/learning/books)
@@ -42,3 +44,9 @@ The-pmarca-Blog-Archives.pdf covers his full blog. Searchable via `book-search.s
 - The Richest Man in Babylon — personal finance fundamentals
 - Total Recall (Schwarzenegger) — ambition/discipline
 - About Behaviorism (Skinner) — human behavior
+
+## Swiped.co (Swipe-Worthy) — advertising teardown corpus
+442+ annotated ad teardowns (hooks, split-tests, direct mail, print, display) by
+Mike Schauer. Ingested by `swiped-sync.sh sync` into `~/.cache/business-lens/swiped/`
+(analysis text + OCR of the ad images); auto-synced daily. Browse the live archive:
+https://swiped.co/browse — cite swipes as `[WEB] <title> — swiped.co/file/<slug>`.

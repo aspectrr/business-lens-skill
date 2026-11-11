@@ -12,7 +12,7 @@ import sys
 
 CACHE = os.environ.get("CACHE_ROOT", os.path.expanduser("~/.cache/business-lens"))
 DB = os.path.join(CACHE, "index.db")
-SOURCES = ("books", "transcripts", "web")
+SOURCES = ("books", "transcripts", "web", "swiped")
 
 
 def find_files():
