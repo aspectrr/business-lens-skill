@@ -15,7 +15,7 @@
 set -uo pipefail
 
 DIR="$(cd "$(dirname "$0")" && pwd)"
-SEMANTIC=0; ARGS=()
+SEMANTIC=; ARGS=()   # flag stays empty (not 0) — ${SEMANTIC:+} treats "0" as set
 for a in "$@"; do
   if [[ "$a" == "--semantic" ]]; then SEMANTIC=1; else ARGS+=("$a"); fi
 done
@@ -58,15 +58,16 @@ echo "║  UNIFIED SEARCH${SEMANTIC:+ (SEMANTIC)}: \"$QUERY\""
 echo "╚══════════════════════════════════════════════╝"
 
 declare -A COUNTS=()
-declare -a B=() T=() W=()       # paths
-declare -a BX=() BY=() TX=() TY=() WX=() WY=()  # semantic: chunk start/end lines
-declare -a BSC=() TSC=() WSC=()                 # semantic: similarity scores
+declare -a B=() T=() W=() S=()       # paths
+declare -a BX=() BY=() TX=() TY=() WX=() WY=() SX=() SY=()  # semantic: chunk start/end lines
+declare -a BSC=() TSC=() WSC=() SSC=()          # semantic: similarity scores
 while IFS=$'\t' read -r tag a b c d; do
   case "$tag" in
     COUNT)       COUNTS["$a"]="$b" ;;
     BOOKS)       B+=("$a"); BX+=("$b"); BY+=("$c"); BSC+=("$d") ;;
     TRANSCRIPTS) [[ -z "$FILTER" || "$a" == *"/$FILTER/"* ]] && { T+=("$a"); TX+=("$b"); TY+=("$c"); TSC+=("$d"); } ;;
     WEB)         W+=("$a"); WX+=("$b"); WY+=("$c"); WSC+=("$d") ;;
+    SWIPED)      S+=("$a"); SX+=("$b"); SY+=("$c"); SSC+=("$d") ;;
   esac
 done <<< "$OUT"
 
@@ -133,15 +134,37 @@ show_web() {
   echo ""
 }
 
+show_swiped() {
+  echo "━━━ SWIPED.CO TEARDOWNS ━━━"
+  local i t
+  for i in "${!S[@]}"; do
+    t="${S[i]}"
+    echo ""
+    if (( SEMANTIC )); then
+      echo "[SWIPED] $t  (similarity ${SSC[i]:-?}, lines ${SX[i]}-${SY[i]})"
+      sed -n "${SX[i]},${SY[i]}p" "$t" | nl -ba -v "${SX[i]}"
+    else
+      local ctx; ctx="$(grep -in -C 4 "${GREP_ARGS[@]}" "$t" 2>/dev/null | head -45)"
+      [[ -z "$ctx" ]] && continue
+      echo "[SWIPED] $t"
+      printf '%s\n' "$ctx"
+    fi
+  done
+  (( ${#S[@]} == 0 )) && echo "(no matches)"
+  echo ""
+}
+
 show_books
 show_transcripts
 show_web
+show_swiped
 
 echo "━━━ SUMMARY ━━━"
 echo "Books:       ${COUNTS[books]:-0}"
 echo "Transcripts: ${COUNTS[transcripts]:-0}"
 echo "Web:         ${COUNTS[web]:-0}"
-TOTAL=$(( ${COUNTS[books]:-0} + ${COUNTS[transcripts]:-0} + ${COUNTS[web]:-0} ))
+echo "Swiped:      ${COUNTS[swiped]:-0}"
+TOTAL=$(( ${COUNTS[books]:-0} + ${COUNTS[transcripts]:-0} + ${COUNTS[web]:-0} + ${COUNTS[swiped]:-0} ))
 if (( TOTAL == 0 )); then
   if (( SEMANTIC )); then
     echo "(no strong semantic matches — try keyword mode (drop --semantic) or different wording)"

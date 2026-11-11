@@ -1,9 +1,9 @@
 ---
 name: "business-lens"
-description: "Business mentor and decision lens. Use when Collin asks for business advice, strategy, pricing/offer, positioning, growth/acquisition, customer-validation, or go/no-go decisions on his business — or wants to reason about how to build/grow a startup or product. Grounds every answer in his trusted sources with citations: Paul Graham essays, Alex Hormozi, Ogilvy, Munger, The Mom Test, Founders Podcast + David Senra (transcripts). Searches his book library, YouTube transcripts (incl. Founders/David Senra, auto-synced daily), and cached web articles for source-backed answers — all sources searched and weighted equally."
-version: 7
+description: "Business mentor and decision lens. Use when Collin asks for business advice, strategy, pricing/offer, positioning, growth/acquisition, customer-validation, or go/no-go decisions on his business — or wants to reason about how to build/grow a startup or product. Grounds every answer in his trusted sources with citations: Paul Graham essays, Alex Hormozi, Ogilvy, Munger, The Mom Test, Founders Podcast + David Senra (transcripts), and swiped.co ad teardowns. Searches his book library, YouTube transcripts, cached web articles, and swiped.co swipe files (ad images OCR'd, auto-synced) for source-backed answers — all sources searched and weighted equally."
+version: 8
 created: "2026-08-01"
-updated: "2026-11-09"
+updated: "2026-11-11"
 ---
 
 # Business Lens — Mentor & Decision Framework
@@ -132,14 +132,31 @@ For JS-heavy or paywalled pages, use the native `web_fetch` tool instead — it 
 browser-grade extraction. Cache the result by saving its text to
 `~/.cache/business-lens/web/<name>.txt` so it's searchable later.
 
-### 4. Unified search — everything at once (primary discovery command)
+### 4. Swiped.co ad teardowns — hooks, ad copy, image OCR
 
 ```bash
-"$SKILL/scripts/search-all.sh" "value equation"             # books + transcripts + web
+"$SKILL/scripts/swiped-sync.sh" sync             # crawl new swipes (first run: hours — background it)
+"$SKILL/scripts/swiped-sync.sh" search "specificity hook"
+"$SKILL/scripts/swiped-sync.sh" read   <slug>    # dump one teardown (analysis + OCR)
+"$SKILL/scripts/swiped-sync.sh" ocr   <image>    # OCR any image file to stdout
+"$SKILL/scripts/swiped-sync.sh" list
+```
+Cached to `~/.cache/business-lens/swiped/<slug>.md`: Mike Schauer's analysis, tags,
+campaign dates, the ad images themselves (`images/<slug>/`), **tesseract OCR of the
+copy inside every ad image**, and image annotations when present. Cite as
+`[WEB] <title> — swiped.co/file/<slug>` and quote OCR lines by line number like any
+other source. Pairs with the Ogilvy lens: real ads, real hooks, annotated why they
+worked. Syncs daily alongside the YouTube channels; dedupe is per-slug so re-runs
+only fetch what's new.
+
+### 5. Unified search — everything at once (primary discovery command)
+
+```bash
+"$SKILL/scripts/search-all.sh" "value equation"             # books + transcripts + web + swiped
 "$SKILL/scripts/search-all.sh" --semantic "pricing for value over hours"
 "$SKILL/scripts/search-all.sh" "retention" "https://www.youtube.com/@AlexHormozi/videos"
 ```
-BM25-ranked FTS5 index over all three caches (`~/.cache/business-lens/index.db`, built by
+BM25-ranked FTS5 index over all four caches (`~/.cache/business-lens/index.db`, built by
 `scripts/index.py`). Run this first when Collin asks "what do my sources say about X".
 
 **Query semantics.** Multi-word queries match ANY keyword — "sell the outcome not the
@@ -159,14 +176,14 @@ mode for exact terms — semantic is the fallback when wording won't match or th
 is fuzzy.
 
 **All sources are equal.** Always run the unified search across books, transcripts,
-AND web before drilling into one source — never default to books, and never let a
+web, AND swiped before drilling into one source — never default to books, and never let a
 loud source (a 450-episode channel) crowd out a quiet one. Each section shows max
 12 relevance-ranked hits, so every source stays weighable side by side. Compare the
 per-source counts in the SUMMARY block before picking evidence: the best-supported
 idea wins no matter which shelf it sits on. Books are not the default authority;
-they are one shelf among three.
+they are one shelf among four.
 
-### 5. Live web (when sources aren't cached)
+### 6. Live web (when sources aren't cached)
 ```bash
 web_search "paulgraham.com how to get startup ideas"   # find the essay
 web_fetch https://paulgraham.com/getideas.html         # read it fresh
